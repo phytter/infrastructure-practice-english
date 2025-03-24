@@ -58,29 +58,42 @@ variable "backend_max_instances" {
 }
 
 variable "google_client_id" {
-  type = string
+  description = "Google Client ID for authentication"
+  type        = string
+  default     = ""
 }
 
 variable "google_client_secret" {
-  type = string
+  description = "Google Client Secret for authentication"
+  type        = string
+  default     = ""
+  sensitive   = true
 }
 
 variable "mongodb_url" {
-  type = string
+  description = "URL for the MongoDB database"
+  type        = string
+  default     = ""
 }
 
 variable "database_name" {
-  type = string
+  description = "Name of the database"
+  type        = string
+  default     = ""
 }
 
 variable "opensubtitles_api_key" {
-  type      = string
-  sensitive = true
+  description = "API key for OpenSubtitles"
+  type        = string
+  sensitive   = true
+  default     = ""
 }
 
 variable "secret_key" {
-  type      = string
-  sensitive = true
+  description = "Secret key for the application"
+  type        = string
+  sensitive   = true
+  default     = ""
 }
 
 variable "common_tags" {
