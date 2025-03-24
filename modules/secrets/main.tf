@@ -20,7 +20,7 @@ resource "aws_secretsmanager_secret" "backend" {
 
 # Secret values
 resource "aws_secretsmanager_secret_version" "backend" {
-  secret_id = length(data.aws_secretsmanager_secret.existing_backend.arn) == 0 ? aws_secretsmanager_secret.backend[0].id : data.aws_secretsmanager_secret.existing_backend[0].id
+  secret_id = length(data.aws_secretsmanager_secret.existing_backend.arn) == 0 ? aws_secretsmanager_secret.backend[0].id : data.aws_secretsmanager_secret.existing_backend.id
   
   secret_string = jsonencode({
     GOOGLE_CLIENT_ID            = var.google_client_id
