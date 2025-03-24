@@ -1,70 +1,3 @@
-# Security group para o load balancer
-resource "aws_security_group" "backend_lb" {
-  name        = "${var.name_prefix}-backend-lb-sg"
-  description = "Security group for backend load balancer"
-  vpc_id      = var.vpc_id
-  
-  tags = merge(var.common_tags, {
-    Name = "${var.name_prefix}-backend-lb-sg"
-  })
-}
-
-# Regras de ingress para o load balancer
-resource "aws_vpc_security_group_ingress_rule" "lb_http_ingress" {
-  security_group_id = aws_security_group.backend_lb.id
-  description       = "Allow HTTP traffic from anywhere"
-  from_port         = 80
-  to_port           = 80
-  ip_protocol       = "tcp"
-  cidr_ipv4         = "0.0.0.0/0"
-}
-
-resource "aws_vpc_security_group_ingress_rule" "lb_https_ingress" {
-  security_group_id = aws_security_group.backend_lb.id
-  description       = "Allow HTTPS traffic from anywhere"
-  from_port         = 443
-  to_port           = 443
-  ip_protocol       = "tcp"
-  cidr_ipv4         = "0.0.0.0/0"
-}
-
-# Regra de egress para o load balancer
-resource "aws_vpc_security_group_egress_rule" "lb_egress" {
-  security_group_id = aws_security_group.backend_lb.id
-  description       = "Allow all outbound traffic"
-  ip_protocol       = "-1" # Todos os protocolos
-  cidr_ipv4         = "0.0.0.0/0"
-}
-
-# Security group para instâncias backend
-resource "aws_security_group" "backend" {
-  name        = "${var.name_prefix}-backend-sg"
-  description = "Security group for backend FastAPI instances"
-  vpc_id      = var.vpc_id
-  
-  tags = merge(var.common_tags, {
-    Name = "${var.name_prefix}-backend-sg"
-  })
-}
-
-# Regra de ingress para instâncias backend - corrigido para porta 8000
-resource "aws_vpc_security_group_ingress_rule" "backend_app_ingress" {
-  security_group_id            = aws_security_group.backend.id
-  description                  = "Allow traffic from the load balancer to the application port"
-  from_port                    = 8000
-  to_port                      = 8000
-  ip_protocol                  = "tcp"
-  referenced_security_group_id = aws_security_group.backend_lb.id
-}
-
-# Regra de egress para instâncias backend
-resource "aws_vpc_security_group_egress_rule" "backend_egress" {
-  security_group_id = aws_security_group.backend.id
-  description       = "Allow all outbound traffic"
-  ip_protocol       = "-1" # Todos os protocolos
-  cidr_ipv4         = "0.0.0.0/0"
-}
-
 # IAM role for EC2 instances
 resource "aws_iam_role" "backend" {
   name = "${var.name_prefix}-backend-role"
@@ -143,7 +76,7 @@ resource "aws_launch_template" "backend" {
     name = aws_iam_instance_profile.backend.name
   }
   
-  vpc_security_group_ids = [aws_security_group.backend.id]
+  vpc_security_group_ids = [var.sg_backend_id]
   
   user_data = base64encode(templatefile("${path.module}/user_data.sh", {
     ecr_repository  = var.ecr_repository
@@ -201,7 +134,7 @@ resource "aws_lb" "backend" {
   name               = "${var.name_prefix}-backend-lb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.backend_lb.id]
+  security_groups    = [var.sg_backend_lb_id]
   subnets            = var.public_subnet_ids
   
   tags = merge(var.common_tags, {
@@ -242,6 +175,7 @@ resource "aws_lb_listener" "backend_http" {
   }
 }
 
+# Auto Scaling policy for scaling out
 resource "aws_autoscaling_policy" "scale_out_policy" {
   name                   = "${var.name_prefix}-scale-out"
   autoscaling_group_name = aws_autoscaling_group.backend.name
@@ -251,6 +185,7 @@ resource "aws_autoscaling_policy" "scale_out_policy" {
 }
 
 
+# CloudWatch alarm for scaling out
 resource "aws_cloudwatch_metric_alarm" "scale_out_alarm" {
   alarm_description   = "Monitors CPU utilization"
   alarm_actions       = [aws_autoscaling_policy.scale_out_policy.arn]
@@ -268,6 +203,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_out_alarm" {
   }
 }
 
+# Auto Scaling policy for scaling in
 resource "aws_autoscaling_policy" "scale_in_policy" {
   name                   = "${var.name_prefix}-scale-in"
   autoscaling_group_name = aws_autoscaling_group.backend.name
@@ -276,6 +212,7 @@ resource "aws_autoscaling_policy" "scale_in_policy" {
   cooldown               = var.scale_out.cooldown
 }
 
+# CloudWatch alarm for scaling in
 resource "aws_cloudwatch_metric_alarm" "scale_in_alarm" {
   alarm_description   = "Monitors CPU utilization"
   alarm_actions       = [aws_autoscaling_policy.scale_in_policy.arn]

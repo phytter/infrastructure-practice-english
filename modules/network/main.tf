@@ -88,7 +88,7 @@ resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
   
   route {
-    cidr_block = "0.0.0.0/0"
+    cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.main[0].id
   }
   
@@ -109,4 +109,71 @@ resource "aws_route_table_association" "private" {
   count          = length(aws_subnet.private)
   subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private.id
+}
+
+# Security group for the load balancer
+resource "aws_security_group" "backend_lb" {
+  name        = "${var.name_prefix}-backend-lb-sg"
+  description = "Security group for backend load balancer"
+  vpc_id      = aws_vpc.main.id
+  
+  tags = merge(var.common_tags, {
+    Name = "${var.name_prefix}-backend-lb-sg"
+  })
+}
+
+# Ingress rules for the load balancer
+resource "aws_vpc_security_group_ingress_rule" "lb_http_ingress" {
+  security_group_id = aws_security_group.backend_lb.id
+  description       = "Allow HTTP traffic from anywhere"
+  from_port         = 80
+  to_port           = 80
+  ip_protocol       = "tcp"
+  cidr_ipv4         = "0.0.0.0/0"
+}
+
+resource "aws_vpc_security_group_ingress_rule" "lb_https_ingress" {
+  security_group_id = aws_security_group.backend_lb.id
+  description       = "Allow HTTPS traffic from anywhere"
+  from_port         = 443
+  to_port           = 443
+  ip_protocol       = "tcp"
+  cidr_ipv4         = "0.0.0.0/0"
+}
+
+# Egress rule for the load balancer
+resource "aws_vpc_security_group_egress_rule" "lb_egress" {
+  security_group_id = aws_security_group.backend_lb.id
+  description       = "Allow all outbound traffic"
+  ip_protocol       = "-1" # All protocols
+  cidr_ipv4         = "0.0.0.0/0"
+}
+
+# Security group for backend instances
+resource "aws_security_group" "backend" {
+  name        = "${var.name_prefix}-backend-sg"
+  description = "Security group for backend FastAPI instances"
+  vpc_id      = aws_vpc.main.id
+  
+  tags = merge(var.common_tags, {
+    Name = "${var.name_prefix}-backend-sg"
+  })
+}
+
+# Ingress rule for backend instances - fixed to port 8000
+resource "aws_vpc_security_group_ingress_rule" "backend_app_ingress" {
+  security_group_id            = aws_security_group.backend.id
+  description                  = "Allow traffic from the load balancer to the application port"
+  from_port                    = 8000
+  to_port                      = 8000
+  ip_protocol                  = "tcp"
+  referenced_security_group_id = aws_security_group.backend_lb.id
+}
+
+# Egress rule for backend instances
+resource "aws_vpc_security_group_egress_rule" "backend_egress" {
+  security_group_id = aws_security_group.backend.id
+  description       = "Allow all outbound traffic"
+  ip_protocol       = "-1" # All protocols
+  cidr_ipv4         = "0.0.0.0/0"
 }

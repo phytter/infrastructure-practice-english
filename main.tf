@@ -37,8 +37,8 @@ locals {
 }
 
 # Include other modules
-module "vpc" {
-  source             = "./modules/vpc"
+module "network" {
+  source             = "./modules/network"
   name_prefix        = local.name_prefix
   common_tags        = local.common_tags
   vpc_cidr           = var.vpc_cidr
@@ -55,9 +55,11 @@ module "backend" {
   source            = "./modules/backend"
   name_prefix       = local.name_prefix
   common_tags       = local.common_tags
-  vpc_id            = module.vpc.vpc_id
-  subnet_ids        = module.vpc.private_subnet_ids
-  public_subnet_ids = module.vpc.public_subnet_ids
+  vpc_id            = module.network.vpc_id
+  sg_backend_lb_id = module.network.sg_backend_lb_id
+  sg_backend_id = module.network.sg_backend_id
+  subnet_ids        = module.network.private_subnet_ids
+  public_subnet_ids = module.network.public_subnet_ids
   backend_image_tag = var.backend_image_tag
   ecr_repository    = var.ecr_repository
   aws_region        = var.aws_region

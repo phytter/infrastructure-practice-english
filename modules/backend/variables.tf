@@ -1,59 +1,70 @@
 variable "name_prefix" {
-  description = "Prefixo para os nomes dos recursos"
+  description = "Prefix for resource names"
   type        = string
 }
 
 variable "common_tags" {
-  description = "Tags comuns para todos os recursos"
+  description = "Common tags for all resources"
   type        = map(string)
 }
 
 variable "vpc_id" {
-  description = "ID da VPC"
+  description = "ID of the VPC"
+  type        = string
+}
+
+variable "sg_backend_id" {
+  description = "ID of the Security Group for the backend"
+  type        = string
+}
+
+variable "sg_backend_lb_id" {
+  description = "ID of the Security Group for the backend load balancer"
   type        = string
 }
 
 variable "subnet_ids" {
-  description = "IDs das sub-redes"
+  description = "IDs of the subnets"
   type        = list(string)
 }
 
 variable "public_subnet_ids" {
-  description = "IDs das sub-redes públicas"
+  description = "IDs of the public subnets"
   type        = list(string)
 }
 
 variable "backend_image_tag" {
-  description = "Tag da imagem do backend"
+  description = "Tag of the backend image"
   type        = string
 }
 
 variable "ecr_repository" {
-  description = "Repositório ECR"
+  description = "ECR repository"
   type        = string
 }
 
 variable "aws_region" {
-  description = "Região da AWS"
+  description = "AWS region"
   type        = string
 }
 
 variable "instance_type" {
-  description = "Tipo de instância EC2"
+  description = "EC2 instance type"
   type        = string
 }
 
 variable "min_instances" {
-  description = "Número mínimo de instâncias"
+  description = "Minimum number of instances"
   type        = number
 }
 
 variable "max_instances" {
-  description = "Número máximo de instâncias"
+  description = "Maximum number of instances"
   type        = number
 }
 
 variable "scale_out" {
+  description = "Scale out configurations"
   type = object({
     scaling_adjustment = number
     cooldown           = number
@@ -62,6 +73,7 @@ variable "scale_out" {
 }
 
 variable "scale_in" {
+  description = "Scale in configurations"
   type = object({
     scaling_adjustment = number
     cooldown           = number

@@ -1,10 +1,10 @@
 variable "name_prefix" {
-  description = "Prefixo para os nomes dos recursos"
+  description = "Prefix for resource names"
   type        = string
 }
 
 variable "common_tags" {
-  description = "Tags comuns para todos os recursos"
+  description = "Common tags for all resources"
   type        = map(string)
 }
 
