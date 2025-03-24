@@ -1,5 +1,11 @@
+# Verifica se o segredo já existe
+data "aws_secretsmanager_secret" "existing_backend" {
+  name = "${var.name_prefix}-secrets-api"
+}
+
 # Secrets Manager secret for backend environment variables
 resource "aws_secretsmanager_secret" "backend" {
+  count       = length(data.aws_secretsmanager_secret.existing_backend.arn) == 0 ? 1 : 0
   name        = "${var.name_prefix}-secrets-api"
   description = "Environment variables for the Practice English backend"
 
@@ -14,7 +20,7 @@ resource "aws_secretsmanager_secret" "backend" {
 
 # Secret values
 resource "aws_secretsmanager_secret_version" "backend" {
-  secret_id = aws_secretsmanager_secret.backend.id
+  secret_id = length(data.aws_secretsmanager_secret.existing_backend.arn) == 0 ? aws_secretsmanager_secret.backend[0].id : data.aws_secretsmanager_secret.existing_backend[0].id: 
   
   secret_string = jsonencode({
     GOOGLE_CLIENT_ID            = var.google_client_id
