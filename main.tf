@@ -56,8 +56,8 @@ module "backend" {
   name_prefix       = local.name_prefix
   common_tags       = local.common_tags
   vpc_id            = module.network.vpc_id
-  sg_backend_lb_id = module.network.sg_backend_lb_id
-  sg_backend_id = module.network.sg_backend_id
+  sg_backend_lb_id  = module.network.sg_backend_lb_id
+  sg_backend_id     = module.network.sg_backend_id
   subnet_ids        = module.network.private_subnet_ids
   public_subnet_ids = module.network.public_subnet_ids
   backend_image_tag = var.backend_image_tag
