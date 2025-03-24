@@ -26,6 +26,8 @@ on:
         options:
           - staging
           - production
+  repository_dispatch:
+    types: [update-backend]
 
 permissions:
   contents: read
@@ -41,7 +43,9 @@ jobs:
       - name: Determine Environment
         id: set-env
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          if [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+            echo "environment=${{ github.event.client_payload.environment }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
           elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "environment=production" >> $GITHUB_OUTPUT
@@ -88,6 +92,15 @@ jobs:
       - name: Terraform Validate
         id: validate
         run: terraform validate -no-color
+
+      - name: Set Backend Image Tag
+        id: set-backend-image-tag
+        run: |
+          if [ -z "${{ github.event.client_payload.image_tag }}" ]; then
+            echo "TF_VAR_backend_image_tag=practice-english-api:latest" >> $GITHUB_ENV
+          else
+            echo "TF_VAR_backend_image_tag=${{ github.event.client_payload.image_tag }}" >> $GITHUB_ENV
+          fi
         
       - name: Terraform Plan
         id: plan
@@ -98,10 +111,10 @@ jobs:
           TF_VAR_database_name: ${{ secrets.DATABASE_NAME }}
           TF_VAR_opensubtitles_api_key: ${{ secrets.OPENSUBTITLES_API_KEY }}
           TF_VAR_secret_key: ${{ secrets.SECRET_KEY }}
+          TF_VAR_backend_image_tag: ${{ env.TF_VAR_backend_image_tag }}
         run: |
           terraform workspace select $ENVIRONMENT || terraform workspace new $ENVIRONMENT
           terraform plan \
-            -var="backend_image_tag=practice-english-api:latest" \
             -var="name_prefix=english" \
             -var="environment=$ENVIRONMENT" \
             -var-file="environments/$ENVIRONMENT/terraform.tfvars" \
@@ -123,7 +136,8 @@ jobs:
       (github.event_name == 'push' && 
        (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')) ||
       (github.event_name == 'workflow_dispatch' && 
-       github.event.inputs.action == 'deploy')
+       github.event.inputs.action == 'deploy') ||
+       (github.event_name == 'repository_dispatch')
     runs-on: ubuntu-latest
     environment: 
       name: ${{ needs.determine-environment.outputs.environment }}
