@@ -176,7 +176,7 @@ jobs:
           terraform workspace select $ENVIRONMENT
           terraform apply -auto-approve tfplan
           
-          if [[ "${{ github.event_name }}" == "repository_dispatch" ]]
+          if [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
             # Get the ASG name
             ASG_NAME=$(terraform output -raw backend_autoscaling_group_name)
             # Refresh instances to use the new image
