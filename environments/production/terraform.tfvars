@@ -21,10 +21,4 @@ scale_out = {
   threshold = 70
   scaling_adjustment = 1
 }
-google_client_id = ""
-google_client_secret = ""
-mongodb_url = ""
-database_name = ""
-opensubtitles_api_key = ""
-secret_key  = ""
 name_prefix = "english"
