@@ -52,6 +52,7 @@ jobs:
   terraform-plan:
     name: Terraform Plan
     needs: determine-environment
+    if: ${{ github.event.inputs.action != 'destroy' }}
     runs-on: ubuntu-latest
     env:
       AWS_REGION: us-east-1
