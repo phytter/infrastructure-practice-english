@@ -56,6 +56,8 @@ module "frontend" {
   google_client_secret = var.google_client_secret
   nextauth_secret      = var.nextauth_secret
   nextauth_url         = var.nextauth_url
+  sg_frontend_ecs_id   = module.network.sg_frontend_ecs_id
+  sg_frontend_alb_id   = module.network.sg_frontend_alb_id
 }
 
 module "backend" {

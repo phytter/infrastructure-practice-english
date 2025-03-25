@@ -13,6 +13,16 @@ variable "vpc_id" {
   type        = string
 }
 
+variable "sg_frontend_ecs_id" {
+  description = "ID of the frontent ecs security group"
+  type        = string
+}
+
+variable "sg_frontend_alb_id" {
+  description = "ID of the frontent load balancer security group"
+  type        = string
+}
+
 variable "public_subnet_ids" {
   description = "IDs of the public subnets"
   type        = list(string)

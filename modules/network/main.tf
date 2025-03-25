@@ -177,3 +177,57 @@ resource "aws_vpc_security_group_egress_rule" "backend_egress" {
   ip_protocol       = "-1" # All protocols
   cidr_ipv4         = "0.0.0.0/0"
 }
+
+# Security group for the load balancer alb frontend
+resource "aws_security_group" "frontend_alb" {
+  name        = "${var.name_prefix}-frontend-alb-sg"
+  description = "Security group for ALB"
+  vpc_id      = aws_vpc.main.id
+
+  tags = var.common_tags
+}
+
+resource "aws_security_group_rule" "frontend_alb_ingress" {
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.frontend_alb.id
+}
+
+resource "aws_security_group_rule" "frontend_alb_egress" {
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.frontend_alb.id
+}
+
+# Security group for ecs frontend 
+resource "aws_security_group" "frontend_ecs" {
+  name        = "${var.name_prefix}-frontend-ecs-sg"
+  description = "Security group for ECS tasks"
+  vpc_id      = aws_vpc.main.id
+
+  tags = var.common_tags
+}
+
+resource "aws_security_group_rule" "frontend_ecs_ingress" {
+  type              = "ingress"
+  from_port         = 3000
+  to_port           = 3000
+  protocol          = "tcp"
+  security_group_id = aws_security_group.frontend_ecs.id
+  source_security_group_id = aws_security_group.frontend_alb.id
+}
+
+resource "aws_security_group_rule" "frontend_ecs_egress_all" {
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.frontend_ecs.id
+}

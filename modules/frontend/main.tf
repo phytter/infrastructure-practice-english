@@ -1,10 +1,13 @@
-# ========== [ECS] ==========
+# ECS Cluster for the frontend application
 resource "aws_ecs_cluster" "cluster" {
-  name = "frontendcluster"
+  name = "${var.name_prefix}-frontend-cluster"
+
+  tags = var.common_tags
 }
 
+# ECS Task Definition for the frontend application
 resource "aws_ecs_task_definition" "frontend" {
-  family                   = "nextjs-app"
+  family                   = "${var.name_prefix}-frontend"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
@@ -12,7 +15,7 @@ resource "aws_ecs_task_definition" "frontend" {
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 
   container_definitions = jsonencode([{
-    name  = "nextjs-container"
+    name  = "${var.name_prefix}-frontend-container"
     image = "${aws_ecr_repository.nextjs_app.repository_url}:latest"
     portMappings = [{
       containerPort = 3000
@@ -37,21 +40,26 @@ resource "aws_ecs_task_definition" "frontend" {
       }
     ]
   }])
+
+  tags = var.common_tags
 }
 
-# ========== [Load Balancer] ==========
+# Application Load Balancer for the frontend application
 resource "aws_lb" "frontend" {
-  name               = "nextjs-alb"
+  name               = "${var.name_prefix}-frontend-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
+  security_groups    = [var.sg_frontend_alb_id]
   subnets            = var.public_subnet_ids
 
   enable_deletion_protection = false
+
+  tags = var.common_tags
 }
 
+# Target Group for the frontend application
 resource "aws_lb_target_group" "frontend" {
-  name        = "nextjs-tg"
+  name        = "${var.name_prefix}-frontend-tg"
   port        = 3000
   protocol    = "HTTP"
   target_type = "ip"
@@ -64,8 +72,11 @@ resource "aws_lb_target_group" "frontend" {
     healthy_threshold   = 2
     unhealthy_threshold = 2
   }
+
+  tags = var.common_tags
 }
 
+# Listener for the Load Balancer
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.frontend.arn
   port              = "80"
@@ -75,18 +86,20 @@ resource "aws_lb_listener" "http" {
     type             = "forward"
     target_group_arn = aws_lb_target_group.frontend.arn
   }
+
+  tags = var.common_tags
 }
 
-# ========== [ECS Service] ==========
+# ECS Service for the frontend application
 resource "aws_ecs_service" "service" {
-  name            = "frontendservice"
+  name            = "${var.name_prefix}-frontend-service"
   cluster         = aws_ecs_cluster.cluster.id
   task_definition = aws_ecs_task_definition.frontend.arn
   desired_count   = 1
 
   network_configuration {
     subnets          = var.public_subnet_ids
-    security_groups  = [aws_security_group.ecs.id]
+    security_groups  = [var.sg_frontend_ecs_id]
     assign_public_ip = true
   }
 
@@ -100,56 +113,18 @@ resource "aws_ecs_service" "service" {
     capacity_provider = "FARGATE_SPOT"
     weight            = 1
   }
+
+  tags = var.common_tags
 }
 
-# ========== [Security Groups] ==========
-resource "aws_security_group" "alb" {
-  name        = "alb-sg"
-  description = "Security group for ALB"
-  vpc_id      = var.vpc_id
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-resource "aws_security_group" "ecs" {
-  name        = "ecs-sg"
-  description = "Security group for ECS tasks"
-  vpc_id      = var.vpc_id
-
-  ingress {
-    from_port       = 3000
-    to_port         = 3000
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb.id]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-# ========== [ECR] ==========
+# ECR Repository for the frontend application
 resource "aws_ecr_repository" "nextjs_app" {
-  name = "nextjs15-app"
+  name = "${var.name_prefix}-frontend"
+
+  tags = var.common_tags
 }
 
-
-# ========== [IAM] ==========
+# IAM Role for ECS Task Execution
 resource "aws_iam_role" "ecs_task_execution_role" {
   name = "ecs-task-exec-role"
 
@@ -163,14 +138,17 @@ resource "aws_iam_role" "ecs_task_execution_role" {
       }
     }]
   })
+
+  tags = var.common_tags
 }
 
+# IAM Role Policy Attachment for ECS Task Execution
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-# ========== [CloudFront para cache] ==========
+# CloudFront Distribution for the frontend application
 resource "aws_cloudfront_distribution" "frontend" {
   enabled     = true
   price_class = "PriceClass_100"
@@ -214,4 +192,6 @@ resource "aws_cloudfront_distribution" "frontend" {
   viewer_certificate {
     cloudfront_default_certificate = true
   }
+
+  tags = var.common_tags
 }

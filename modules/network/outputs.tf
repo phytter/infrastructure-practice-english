@@ -22,3 +22,13 @@ output "sg_backend_lb_id" {
   description = "ID of the backend load balancer security group"
   value       = aws_security_group.backend_lb.id
 }
+
+output "sg_frontend_ecs_id" {
+  description = "ID of the frontent ecs security group"
+  value       = aws_security_group.frontend_ecs.id
+}
+
+output "sg_frontend_alb_id" {
+  description = "ID of the frontent load balancer security group"
+  value       = aws_security_group.frontend_alb.id
+}
