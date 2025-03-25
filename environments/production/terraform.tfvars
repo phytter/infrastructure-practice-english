@@ -22,7 +22,7 @@ scale_out = {
   scaling_adjustment = 1
 }
 name_prefix = "english"
-frontend_ecs_cpu = "512"
-frontend_ecs_memory = "256"
+frontend_ecs_cpu = "256"
+frontend_ecs_memory = "512"
 frontend_min_instances = 1
 frontend_max_instances = 2
