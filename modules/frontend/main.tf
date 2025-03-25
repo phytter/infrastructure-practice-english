@@ -145,6 +145,7 @@ resource "aws_appautoscaling_policy" "cpu_scaling_policy" {
 # ECR Repository for the frontend application
 resource "aws_ecr_repository" "frontent" {
   name = "${var.name_prefix}-frontend"
+  force_delete = true
 
   tags = var.common_tags
 }
