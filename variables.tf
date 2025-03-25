@@ -126,4 +126,5 @@ variable "nextauth_secret" {
 variable "nextauth_url" {
   description = "Next auth url"
   type        = string
+  default     = ""
 }
