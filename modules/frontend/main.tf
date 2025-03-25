@@ -10,13 +10,13 @@ resource "aws_ecs_task_definition" "frontend" {
   family                   = "${var.name_prefix}-frontend"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "256"
-  memory                   = "512"
+  cpu                      = var.ecs_cpu
+  memory                   = var.ecs_memory
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 
   container_definitions = jsonencode([{
     name  = "${var.name_prefix}-frontend-container"
-    image = "${aws_ecr_repository.nextjs_app.repository_url}:latest"
+    image = "${aws_ecr_repository.frontent.repository_url}:latest"
     portMappings = [{
       containerPort = 3000
       hostPort      = 3000
@@ -95,7 +95,7 @@ resource "aws_ecs_service" "service" {
   name            = "${var.name_prefix}-frontend-service"
   cluster         = aws_ecs_cluster.cluster.id
   task_definition = aws_ecs_task_definition.frontend.arn
-  desired_count   = 1
+  desired_count   = var.min_instances
 
   network_configuration {
     subnets          = var.public_subnet_ids
@@ -105,7 +105,7 @@ resource "aws_ecs_service" "service" {
 
   load_balancer {
     target_group_arn = aws_lb_target_group.frontend.arn
-    container_name   = "nextjs-container"
+    container_name   = "${var.name_prefix}-frontend-container"
     container_port   = 3000
   }
 
@@ -117,8 +117,33 @@ resource "aws_ecs_service" "service" {
   tags = var.common_tags
 }
 
+resource "aws_appautoscaling_target" "frontend" {
+  max_capacity       = var.max_instances
+  min_capacity       = var.min_instances
+  resource_id        = "service/${aws_ecs_cluster.cluster.name}/${aws_ecs_service.service.name}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace  = "ecs"
+}
+
+resource "aws_appautoscaling_policy" "cpu_scaling_policy" {
+  name               = "cpu-scaling-policy"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.frontend.resource_id
+  scalable_dimension = aws_appautoscaling_target.frontend.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.frontend.service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    target_value       = 80.0
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+    scale_in_cooldown  = 300
+    scale_out_cooldown = 300
+  }
+}
+
 # ECR Repository for the frontend application
-resource "aws_ecr_repository" "nextjs_app" {
+resource "aws_ecr_repository" "frontent" {
   name = "${var.name_prefix}-frontend"
 
   tags = var.common_tags

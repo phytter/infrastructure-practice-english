@@ -128,3 +128,27 @@ variable "nextauth_url" {
   type        = string
   default     = ""
 }
+
+variable "frontend_ecs_cpu" {
+  description = "Cpu capacity for frontend ecs"
+  type        = string
+  default     = "256"
+}
+
+variable "frontend_ecs_memory" {
+  description = "Memory capacity for frontend ecs"
+  type        = string
+  default     = "512"
+}
+
+variable "frontend_min_instances" {
+  description = "Minimum number of frontend instances"
+  type        = number
+  default     = 1
+}
+
+variable "frontend_max_instances" {
+  description = "Maximum number of frontend instances"
+  type        = number
+  default     = 2
+}

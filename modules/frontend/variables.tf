@@ -52,3 +52,23 @@ variable "nextauth_url" {
   description = "Next auth url"
   type        = string
 }
+
+variable "ecs_cpu" {
+  description = "Cpu capacity for frontend ecs"
+  type        = string
+}
+
+variable "ecs_memory" {
+  description = "Memory capacity for frontend ecs"
+  type        = string
+}
+
+variable "min_instances" {
+  description = "Minimum number of instances"
+  type        = number
+}
+
+variable "max_instances" {
+  description = "Maximum number of instances"
+  type        = number
+}

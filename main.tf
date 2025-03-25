@@ -58,6 +58,10 @@ module "frontend" {
   nextauth_url         = var.nextauth_url
   sg_frontend_ecs_id   = module.network.sg_frontend_ecs_id
   sg_frontend_alb_id   = module.network.sg_frontend_alb_id
+  min_instances        = var.frontend_min_instances
+  max_instances        = var.frontend_max_instances
+  ecs_cpu              = var.frontend_ecs_cpu
+  ecs_memory           = var.frontend_ecs_memory
 }
 
 module "backend" {
