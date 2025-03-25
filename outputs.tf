@@ -1,12 +1,12 @@
-# output "frontend_s3_bucket" {
-#   description = "S3 bucket name for frontend static assets"
-#   value       = module.frontend.s3_bucket_name
-# }
+output "frontend_url" {
+  description = "Domain name of the frontend"
+  value       = module.frontend.app_url
+}
 
-# output "cloudfront_distribution_id" {
-#   description = "CloudFront distribution ID for frontend"
-#   value       = module.frontend.cloudfront_distribution_id
-# }
+output "frontend_lb_dns" {
+  description = "DNS name of the frontend load balancer"
+  value       = module.frontend.load_balancer_dns
+}
 
 output "backend_lb_dns" {
   description = "DNS name of the backend load balancer"

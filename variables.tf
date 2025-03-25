@@ -116,3 +116,14 @@ variable "scale_in" {
     threshold          = number
   })
 }
+
+variable "nextauth_secret" {
+  description = "Next auth secret"
+  type        = string
+  default     = "asd45115431ds@*112s"
+}
+
+variable "nextauth_url" {
+  description = "Next auth url"
+  type        = string
+}

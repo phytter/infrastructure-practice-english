@@ -4,7 +4,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.0"
+      version = "~> 5.0"
     }
   }
 
@@ -45,11 +45,18 @@ module "network" {
   availability_zones = var.availability_zones
 }
 
-# module "frontend" {
-#   source      = "./modules/frontend"
-#   name_prefix = local.name_prefix
-#   common_tags = local.common_tags
-# }
+module "frontend" {
+  source               = "./modules/frontend"
+  name_prefix          = local.name_prefix
+  common_tags          = local.common_tags
+  public_subnet_ids    = module.network.public_subnet_ids
+  aws_region           = var.aws_region
+  vpc_id               = module.network.vpc_id
+  google_client_id     = var.google_client_id
+  google_client_secret = var.google_client_secret
+  nextauth_secret      = var.nextauth_secret
+  nextauth_url         = var.nextauth_url
+}
 
 module "backend" {
   source            = "./modules/backend"
