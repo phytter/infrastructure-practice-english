@@ -13,11 +13,6 @@ variable "vpc_cidr" {
   type        = string
 }
 
-variable "availability_zones" {
-  description = "List of availability zones"
-  type        = list(string)
-}
-
 variable "domain_name" {
   description = "The domain name to create records for"
   type        = string

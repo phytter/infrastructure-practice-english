@@ -38,14 +38,13 @@ locals {
 
 # Include other modules
 module "network" {
-  source             = "./modules/network"
-  name_prefix        = local.name_prefix
-  common_tags        = local.common_tags
-  vpc_cidr           = var.vpc_cidr
-  availability_zones = var.availability_zones
-  domain_name        = var.domain_name
-  frontend_lb_dns    = module.frontend.load_balancer_dns
-  backend_lb_dns     = module.backend.load_balancer_dns
+  source          = "./modules/network"
+  name_prefix     = local.name_prefix
+  common_tags     = local.common_tags
+  vpc_cidr        = var.vpc_cidr
+  domain_name     = var.domain_name
+  frontend_lb_dns = module.frontend.load_balancer_dns
+  backend_lb_dns  = module.backend.load_balancer_dns
 }
 
 module "frontend" {
