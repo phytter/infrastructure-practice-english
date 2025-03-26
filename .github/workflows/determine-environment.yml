@@ -1,6 +1,10 @@
 name: Determine Environment
 on:
   workflow_call:
+    outputs:
+      environment:
+        description: 'The determined environment'
+        value: ${{ jobs.determine-environment.outputs.environment }}
 jobs:
   determine-environment:
     runs-on: ubuntu-latest
