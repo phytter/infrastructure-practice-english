@@ -45,6 +45,17 @@ jobs:
     uses: ./.github/workflows/terraform-plan.yml
     with:
       environment: ${{ needs.determine-environment.outputs.environment }}
+      AWS_REGION: "us-east-1"
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      MONGODB_URL: ${{ secrets.MONGODB_URL }}
+      DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+      OPENSUBTITLES_API_KEY: ${{ secrets.OPENSUBTITLES_API_KEY }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
 
   terraform-apply:
     needs:

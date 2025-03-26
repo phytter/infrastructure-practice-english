@@ -5,11 +5,36 @@ on:
       environment:
         required: true
         type: string
+      AWS_REGION:
+        required: true
+        type: string
+      DOMAIN_NAME:
+        required: true
+        type: string
+    secrets:
+        AWS_ACCESS_KEY_ID:
+          required: true
+        AWS_SECRET_ACCESS_KEY:
+          required: true
+        GOOGLE_CLIENT_ID:
+          required: false
+        GOOGLE_CLIENT_SECRET:
+          required: false
+        MONGODB_URL:
+          required: false
+        DATABASE_NAME:
+          required: false
+        OPENSUBTITLES_API_KEY:
+          required: false
+        SECRET_KEY:
+          required: false
+        NEXTAUTH_URL:
+          required: false
+
 jobs:
   terraform-plan:
     runs-on: ubuntu-latest
     env:
-      AWS_REGION: us-east-1
       ENVIRONMENT: ${{ inputs.environment }}
     steps:
       - name: Checkout Repository
@@ -20,7 +45,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ inputs.AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -61,7 +86,7 @@ jobs:
           TF_VAR_secret_key: ${{ secrets.SECRET_KEY }}
           TF_VAR_backend_image_tag: ${{ env.TF_VAR_backend_image_tag }}
           TF_VAR_nextauth_url: ${{ secrets.NEXTAUTH_URL }}
-          TF_VAR_domain_name: ${{ vars.DOMAIN_NAME }}
+          TF_VAR_domain_name: ${{ inputs.DOMAIN_NAME }}
         run: |
           terraform workspace select $ENVIRONMENT || terraform workspace new $ENVIRONMENT
           terraform plan \
