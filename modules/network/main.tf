@@ -231,3 +231,25 @@ resource "aws_security_group_rule" "frontend_ecs_egress_all" {
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.frontend_ecs.id
 }
+
+resource "aws_route53_zone" "main" {
+  name = var.domain_name
+
+  tags = var.common_tags
+}
+
+resource "aws_route53_record" "frontend" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "app.${var.domain_name}"
+  type    = "CNAME"
+  ttl     = 300
+  records = [var.frontend_lb_dns]
+}
+
+resource "aws_route53_record" "backend" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "api.${var.domain_name}"
+  type    = "CNAME"
+  ttl     = 300
+  records = [var.backend_lb_dns]
+}

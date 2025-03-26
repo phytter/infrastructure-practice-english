@@ -17,3 +17,18 @@ variable "availability_zones" {
   description = "List of availability zones"
   type        = list(string)
 }
+
+variable "domain_name" {
+  description = "The domain name to create records for"
+  type        = string
+}
+
+variable "frontend_lb_dns" {
+  description = "DNS name of the frontend load balancer"
+  type        = string
+}
+
+variable "backend_lb_dns" {
+  description = "DNS name of the backend load balancer"
+  type        = string
+}

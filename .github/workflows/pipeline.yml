@@ -113,6 +113,7 @@ jobs:
           TF_VAR_secret_key: ${{ secrets.SECRET_KEY }}
           TF_VAR_backend_image_tag: ${{ env.TF_VAR_backend_image_tag }}
           TF_VAR_nextauth_url: ${{ secrets.NEXTAUTH_URL }}
+          TF_VAR_domain_name: ${{ vars.DOMAIN_NAME }}
         run: |
           terraform workspace select $ENVIRONMENT || terraform workspace new $ENVIRONMENT
           terraform plan \

@@ -164,3 +164,8 @@ variable "frontend_ecr_repository" {
   type        = string
   default     = "practice-english-front"
 }
+
+variable "domain_name" {
+  description = "The domain name to create records for"
+  type        = string
+}
