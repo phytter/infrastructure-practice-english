@@ -187,6 +187,7 @@ resource "aws_security_group" "frontend_alb" {
   tags = var.common_tags
 }
 
+# Ingress rules for the load balancer
 resource "aws_security_group_rule" "frontend_alb_ingress" {
   type              = "ingress"
   from_port         = 80
@@ -196,6 +197,16 @@ resource "aws_security_group_rule" "frontend_alb_ingress" {
   security_group_id = aws_security_group.frontend_alb.id
 }
 
+resource "aws_vpc_security_group_ingress_rule" "frontend_alb__https_ingress" {
+  security_group_id = aws_security_group.frontend_alb.id
+  description       = "Allow HTTPS traffic from anywhere"
+  from_port         = 443
+  to_port           = 443
+  ip_protocol       = "tcp"
+  cidr_ipv4         = "0.0.0.0/0"
+}
+
+# Egress rules for the load balancer
 resource "aws_security_group_rule" "frontend_alb_egress" {
   type              = "egress"
   from_port         = 0
