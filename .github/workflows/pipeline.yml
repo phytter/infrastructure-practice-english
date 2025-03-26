@@ -288,4 +288,4 @@ jobs:
       - name: Terraform Destroy
         run: |
           terraform workspace select $ENVIRONMENT
-          terraform destroy -auto-approve tfplan-destroy
+          terraform apply -auto-approve tfplan-destroy
