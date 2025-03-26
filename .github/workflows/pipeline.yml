@@ -127,7 +127,7 @@ jobs:
         with:
           name: terraform-plan
           path: tfplan
-          retention-days: 5
+          retention-days: 3
 
   terraform-apply:
     name: Terraform Apply
@@ -185,16 +185,76 @@ jobs:
             aws autoscaling start-instance-refresh --auto-scaling-group-name $ASG_NAME
           fi
 
+  terraform-plan-destroy:
+    name: Terraform Plan Destroy
+    needs: determine-environment
+    if: >
+      github.event_name == 'workflow_dispatch' && 
+      github.event.inputs.action == 'destroy'
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1
+      ENVIRONMENT: ${{ needs.determine-environment.outputs.environment }}
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.11.2'
+          terraform_wrapper: false
+          
+      - name: Terraform Initialize
+        run: |
+          terraform init
+        
+      - name: Terraform Plan Destroy
+        id: plan-destroy
+        env:
+          TF_VAR_google_client_id: ${{ secrets.GOOGLE_CLIENT_ID }}
+          TF_VAR_google_client_secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          TF_VAR_mongodb_url: ${{ secrets.MONGODB_URL }}
+          TF_VAR_database_name: ${{ secrets.DATABASE_NAME }}
+          TF_VAR_opensubtitles_api_key: ${{ secrets.OPENSUBTITLES_API_KEY }}
+          TF_VAR_secret_key: ${{ secrets.SECRET_KEY }}
+          TF_VAR_backend_image_tag: ${{ env.TF_VAR_backend_image_tag }}
+          TF_VAR_nextauth_url: ${{ secrets.NEXTAUTH_URL }}
+          TF_VAR_domain_name: ${{ vars.DOMAIN_NAME }}
+        run: |
+          terraform workspace select $ENVIRONMENT || terraform workspace new $ENVIRONMENT
+          terraform plan -destroy \
+            -var="name_prefix=english" \
+            -var="environment=$ENVIRONMENT" \
+            -var-file="environments/$ENVIRONMENT/terraform.tfvars" \
+            -out=tfplan-destroy
+          
+      - name: Upload Terraform Plan Destroy
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan-destroy
+          path: tfplan-destroy
+          retention-days: 1
+
   terraform-destroy:
     name: Terraform Destroy
-    needs: determine-environment
+    needs:
+      - determine-environment
+      - terraform-plan-destroy
     if: >
       github.event_name == 'workflow_dispatch' && 
       github.event.inputs.action == 'destroy'
     runs-on: ubuntu-latest
     environment: 
       name: ${{ needs.determine-environment.outputs.environment }}-destroy
-      url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
     env:
       AWS_REGION: us-east-1
       ENVIRONMENT: ${{ needs.determine-environment.outputs.environment }}
@@ -223,8 +283,4 @@ jobs:
       - name: Terraform Destroy
         run: |
           terraform workspace select $ENVIRONMENT
-          terraform destroy -auto-approve \
-            -var="backend_image_tag=practice-english-api:latest" \
-            -var="name_prefix=english" \
-            -var="environment=$ENVIRONMENT" \
-            -var-file="environments/$ENVIRONMENT/terraform.tfvars"
+          terraform destroy -auto-approve tfplan-destroy
