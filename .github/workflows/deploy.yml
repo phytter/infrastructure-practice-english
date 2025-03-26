@@ -46,6 +46,7 @@ jobs:
     with:
       environment: ${{ needs.determine-environment.outputs.environment }}
       AWS_REGION: "us-east-1"
+      DOMAIN_NAME: ${{vars.DOMAIN_NAME}}
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
