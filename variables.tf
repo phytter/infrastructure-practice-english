@@ -168,4 +168,5 @@ variable "frontend_ecr_repository" {
 variable "domain_name" {
   description = "The domain name to create records for"
   type        = string
+  default     = ""
 }
