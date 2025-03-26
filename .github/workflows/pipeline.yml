@@ -97,7 +97,7 @@ jobs:
         id: set-backend-image-tag
         run: |
           if [ -z "${{ github.event.client_payload.image_tag }}" ]; then
-            echo "TF_VAR_backend_image_tag=practice-english-api:latest" >> $GITHUB_ENV
+            echo "TF_VAR_backend_image_tag=latest" >> $GITHUB_ENV
           else
             echo "TF_VAR_backend_image_tag=${{ github.event.client_payload.image_tag }}" >> $GITHUB_ENV
           fi

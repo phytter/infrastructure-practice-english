@@ -62,6 +62,8 @@ module "frontend" {
   max_instances        = var.frontend_max_instances
   ecs_cpu              = var.frontend_ecs_cpu
   ecs_memory           = var.frontend_ecs_memory
+  image_tag            = var.backend_image_tag
+  ecr_repository       = var.backend_ecr_repository
 }
 
 module "backend" {
@@ -74,7 +76,7 @@ module "backend" {
   subnet_ids        = module.network.private_subnet_ids
   public_subnet_ids = module.network.public_subnet_ids
   backend_image_tag = var.backend_image_tag
-  ecr_repository    = var.ecr_repository
+  ecr_repository    = var.backend_ecr_repository
   aws_region        = var.aws_region
   instance_type     = var.ec2_instance_type
   min_instances     = var.backend_min_instances

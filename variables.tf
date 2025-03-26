@@ -21,7 +21,7 @@ variable "backend_image_tag" {
   default     = "latest"
 }
 
-variable "ecr_repository" {
+variable "backend_ecr_repository" {
   description = "Name of the ECR repository for the backend"
   type        = string
   default     = "practice-english-api"
@@ -151,4 +151,16 @@ variable "frontend_max_instances" {
   description = "Maximum number of frontend instances"
   type        = number
   default     = 2
+}
+
+variable "frontend_image_tag" {
+  description = "The tag for the frontend Docker image"
+  type        = string
+  default     = "latest"
+}
+
+variable "frontend_ecr_repository" {
+  description = "Name of the ECR repository for the frontend"
+  type        = string
+  default     = "practice-english-front"
 }

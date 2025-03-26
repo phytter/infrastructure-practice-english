@@ -16,7 +16,7 @@ resource "aws_ecs_task_definition" "frontend" {
 
   container_definitions = jsonencode([{
     name  = "${var.name_prefix}-frontend-container"
-    image = "${aws_ecr_repository.frontent.repository_url}:latest"
+    image = "${aws_ecr_repository.frontent.repository_url}:${var.image_tag}"
     portMappings = [{
       containerPort = 3000
       hostPort      = 3000
@@ -144,7 +144,7 @@ resource "aws_appautoscaling_policy" "cpu_scaling_policy" {
 
 # ECR Repository for the frontend application
 resource "aws_ecr_repository" "frontent" {
-  name = "${var.name_prefix}-frontend"
+  name = var.ecr_repository
   force_delete = true
 
   tags = var.common_tags

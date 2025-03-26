@@ -72,3 +72,13 @@ variable "max_instances" {
   description = "Maximum number of instances"
   type        = number
 }
+
+variable "ecr_repository" {
+  description = "Name of the ECR repository for the frontend"
+  type        = string
+}
+
+variable "image_tag" {
+  description = "The tag for the frontend Docker image"
+  type        = string
+}
