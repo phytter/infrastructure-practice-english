@@ -1,0 +1,78 @@
+name: Terraform Plan
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+jobs:
+  terraform-plan:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1
+      ENVIRONMENT: ${{ inputs.environment }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.11.2'
+          terraform_wrapper: false
+
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform fmt -check -diff
+        continue-on-error: true
+
+      - name: Terraform Initialize
+        id: init
+        run: terraform init
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      - name: Set Backend Image Tag
+        id: set-backend-image-tag
+        run: |
+          if [ -z "${{ github.event.client_payload.image_tag }}" ]; then
+            echo "TF_VAR_backend_image_tag=latest" >> $GITHUB_ENV
+          else
+            echo "TF_VAR_backend_image_tag=${{ github.event.client_payload.image_tag }}" >> $GITHUB_ENV
+          fi
+
+      - name: Terraform Plan
+        id: plan
+        env:
+          TF_VAR_google_client_id: ${{ secrets.GOOGLE_CLIENT_ID }}
+          TF_VAR_google_client_secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          TF_VAR_mongodb_url: ${{ secrets.MONGODB_URL }}
+          TF_VAR_database_name: ${{ secrets.DATABASE_NAME }}
+          TF_VAR_opensubtitles_api_key: ${{ secrets.OPENSUBTITLES_API_KEY }}
+          TF_VAR_secret_key: ${{ secrets.SECRET_KEY }}
+          TF_VAR_backend_image_tag: ${{ env.TF_VAR_backend_image_tag }}
+          TF_VAR_nextauth_url: ${{ secrets.NEXTAUTH_URL }}
+          TF_VAR_domain_name: ${{ vars.DOMAIN_NAME }}
+        run: |
+          terraform workspace select $ENVIRONMENT || terraform workspace new $ENVIRONMENT
+          terraform plan \
+            -var="name_prefix=english" \
+            -var="environment=$ENVIRONMENT" \
+            -var-file="environments/$ENVIRONMENT/terraform.tfvars" \
+            -out=tfplan
+
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: tfplan
+          retention-days: 3

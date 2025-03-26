@@ -1,0 +1,21 @@
+name: Determine Environment
+on:
+  workflow_call:
+jobs:
+  determine-environment:
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+    steps:
+      - name: Determine Environment
+        id: set-env
+        run: |
+          if [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+            echo "environment=${{ github.event.client_payload.environment }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+          else
+            echo "environment=staging" >> $GITHUB_OUTPUT
+          fi

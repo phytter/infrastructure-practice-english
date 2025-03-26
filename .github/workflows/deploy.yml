@@ -1,0 +1,80 @@
+name: Infrastructure Deployment and Management
+
+on:
+  push:
+    branches:
+      - staging
+      - main
+  pull_request:
+    branches:
+      - staging
+      - main
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        type: choice
+        options:
+          - deploy
+          - destroy
+      environment:
+        description: 'Environment to manage'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+  repository_dispatch:
+    types: [update-backend]
+
+permissions:
+  contents: read
+  pull-requests: write
+  actions: write
+
+jobs:
+  determine-environment:
+    uses: ./.github/workflows/determine-environment.yml
+
+  terraform-plan:
+    needs: determine-environment
+    if: ${{ github.event.inputs.action != 'destroy' }}
+    uses: ./.github/workflows/terraform-plan.yml
+    with:
+      environment: ${{ needs.determine-environment.outputs.environment }}
+
+  terraform-apply:
+    needs:
+      - determine-environment
+      - terraform-plan
+    if: >
+      (github.event_name == 'push' &&
+       (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')) ||
+      (github.event_name == 'workflow_dispatch' &&
+       github.event.inputs.action == 'deploy') ||
+      (github.event_name == 'repository_dispatch')
+    uses: ./.github/workflows/terraform-apply.yml
+    with:
+      environment: ${{ needs.determine-environment.outputs.environment }}
+
+  terraform-plan-destroy:
+    needs: determine-environment
+    if: >
+      github.event_name == 'workflow_dispatch' &&
+      github.event.inputs.action == 'destroy'
+    uses: ./.github/workflows/terraform-plan-destroy.yml
+    with:
+      environment: ${{ needs.determine-environment.outputs.environment }}
+
+  terraform-destroy:
+    needs:
+      - determine-environment
+      - terraform-plan-destroy
+    if: >
+      github.event_name == 'workflow_dispatch' &&
+      github.event.inputs.action == 'destroy'
+    uses: ./.github/workflows/terraform-destroy.yml
+    with:
+      environment: ${{ needs.determine-environment.outputs.environment }}
