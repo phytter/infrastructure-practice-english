@@ -65,8 +65,8 @@ module "frontend" {
   max_instances        = var.frontend_max_instances
   ecs_cpu              = var.frontend_ecs_cpu
   ecs_memory           = var.frontend_ecs_memory
-  image_tag            = var.backend_image_tag
-  ecr_repository       = var.backend_ecr_repository
+  image_tag            = var.frontend_image_tag
+  ecr_repository       = var.frontend_ecr_repository
 }
 
 module "backend" {
