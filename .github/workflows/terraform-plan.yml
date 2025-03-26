@@ -89,12 +89,19 @@ jobs:
           TF_VAR_domain_name: ${{ inputs.DOMAIN_NAME }}
         run: |
           terraform workspace select $ENVIRONMENT || terraform workspace new $ENVIRONMENT
-          terraform plan \
-            -var="name_prefix=english" \
-            -var="environment=$ENVIRONMENT" \
-            -var-file="environments/$ENVIRONMENT/terraform.tfvars" \
-            -out=tfplan
-
+          if [[ "${{ github.event.inputs.action }}" == "destroy"  ]]; then
+            terraform plan -destroy \
+              -var="name_prefix=english" \
+              -var="environment=$ENVIRONMENT" \
+              -var-file="environments/$ENVIRONMENT/terraform.tfvars" \
+              -out=tfplan
+          else
+            terraform plan \
+              -var="name_prefix=english" \
+              -var="environment=$ENVIRONMENT" \
+              -var-file="environments/$ENVIRONMENT/terraform.tfvars" \
+              -out=tfplan
+          fi
       - name: Upload Terraform Plan
         uses: actions/upload-artifact@v4
         with:

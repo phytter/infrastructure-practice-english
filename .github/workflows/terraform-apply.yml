@@ -8,6 +8,8 @@ on:
 jobs:
   terraform-apply:
     runs-on: ubuntu-latest
+    environment: 
+      name: ${{ inputs.environment }}
     env:
       AWS_REGION: us-east-1
       ENVIRONMENT: ${{ inputs.environment }}
