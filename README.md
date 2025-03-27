@@ -75,6 +75,12 @@ Make sure to define the following sensitive variables in your environment or thr
 - `TF_VAR_secret_key`
 - `TF_VAR_nextauth_url`
 
+## Related Projects
+
+- [App Practice English](https://github.com/phytter/app-practice-english)
+
+- [API Practice English](https://github.com/phytter/api-practice-english)
+
 ### Contribution
 
 Contributions are welcome! Feel free to open issues or submit pull requests.
