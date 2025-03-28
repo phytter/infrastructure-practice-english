@@ -133,7 +133,7 @@ resource "aws_appautoscaling_policy" "cpu_scaling_policy" {
   service_namespace  = aws_appautoscaling_target.frontend.service_namespace
 
   target_tracking_scaling_policy_configuration {
-    target_value       = 80.0
+    target_value = 80.0
     predefined_metric_specification {
       predefined_metric_type = "ECSServiceAverageCPUUtilization"
     }
@@ -144,7 +144,7 @@ resource "aws_appautoscaling_policy" "cpu_scaling_policy" {
 
 # ECR Repository for the frontend application
 resource "aws_ecr_repository" "frontent" {
-  name = var.ecr_repository
+  name         = var.ecr_repository
   force_delete = true
 
   tags = var.common_tags
@@ -180,7 +180,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   price_class = "PriceClass_100"
 
   origin {
-    domain_name = "${aws_lb.frontend.dns_name}"
+    domain_name = aws_lb.frontend.dns_name
     origin_id   = "ecs-origin"
 
     custom_origin_config {

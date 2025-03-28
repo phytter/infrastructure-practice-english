@@ -2,7 +2,7 @@ resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
-  
+
   tags = merge(var.common_tags, {
     Name = "${var.name_prefix}-vpc"
   })
@@ -19,7 +19,7 @@ resource "aws_subnet" "public" {
   cidr_block              = cidrsubnet(var.vpc_cidr, 8, count.index)
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = true
-  
+
   tags = merge(var.common_tags, {
     Name = "${var.name_prefix}-public-subnet-${count.index + 1}"
   })
@@ -32,7 +32,7 @@ resource "aws_subnet" "private" {
   cidr_block              = cidrsubnet(var.vpc_cidr, 8, count.index + length(data.aws_availability_zones.available.names))
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = false
-  
+
   tags = merge(var.common_tags, {
     Name = "${var.name_prefix}-private-subnet-${count.index + 1}"
   })
@@ -41,7 +41,7 @@ resource "aws_subnet" "private" {
 # Internet Gateway
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
-  
+
   tags = merge(var.common_tags, {
     Name = "${var.name_prefix}-igw"
   })
@@ -50,7 +50,7 @@ resource "aws_internet_gateway" "main" {
 # Elastic IP for NAT Gateway
 resource "aws_eip" "nat" {
   count = 1
-  
+
   tags = merge(var.common_tags, {
     Name = "${var.name_prefix}-nat-eip"
   })
@@ -61,23 +61,23 @@ resource "aws_nat_gateway" "main" {
   count         = 1
   allocation_id = aws_eip.nat[0].id
   subnet_id     = aws_subnet.public[0].id
-  
+
   tags = merge(var.common_tags, {
     Name = "${var.name_prefix}-nat-gw"
   })
-  
+
   depends_on = [aws_internet_gateway.main]
 }
 
 # Route table for public subnets
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
-  
+
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.main.id
   }
-  
+
   tags = merge(var.common_tags, {
     Name = "${var.name_prefix}-public-rt"
   })
@@ -86,12 +86,12 @@ resource "aws_route_table" "public" {
 # Route table for private subnets
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
-  
+
   route {
     cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.main[0].id
   }
-  
+
   tags = merge(var.common_tags, {
     Name = "${var.name_prefix}-private-rt"
   })
@@ -116,7 +116,7 @@ resource "aws_security_group" "backend_lb" {
   name        = "${var.name_prefix}-backend-lb-sg"
   description = "Security group for backend load balancer"
   vpc_id      = aws_vpc.main.id
-  
+
   tags = merge(var.common_tags, {
     Name = "${var.name_prefix}-backend-lb-sg"
   })
@@ -154,7 +154,7 @@ resource "aws_security_group" "backend" {
   name        = "${var.name_prefix}-backend-sg"
   description = "Security group for backend FastAPI instances"
   vpc_id      = aws_vpc.main.id
-  
+
   tags = merge(var.common_tags, {
     Name = "${var.name_prefix}-backend-sg"
   })
@@ -226,11 +226,11 @@ resource "aws_security_group" "frontend_ecs" {
 }
 
 resource "aws_security_group_rule" "frontend_ecs_ingress" {
-  type              = "ingress"
-  from_port         = 3000
-  to_port           = 3000
-  protocol          = "tcp"
-  security_group_id = aws_security_group.frontend_ecs.id
+  type                     = "ingress"
+  from_port                = 3000
+  to_port                  = 3000
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.frontend_ecs.id
   source_security_group_id = aws_security_group.frontend_alb.id
 }
 
