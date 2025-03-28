@@ -21,16 +21,16 @@ resource "aws_secretsmanager_secret" "backend" {
 # Secret values
 resource "aws_secretsmanager_secret_version" "backend" {
   secret_id = length(data.aws_secretsmanager_secret.existing_backend.arn) == 0 ? aws_secretsmanager_secret.backend[0].id : data.aws_secretsmanager_secret.existing_backend.id
-  
+
   secret_string = jsonencode({
-    GOOGLE_CLIENT_ID            = var.google_client_id
-    GOOGLE_CLIENT_SECRET        = var.google_client_secret
-    MONGODB_URL                 = var.mongodb_url
-    DATABASE_NAME               = var.database_name
-    OPENSUBTITLES_API_KEY       = var.opensubtitles_api_key
-    SECRET_KEY                  = var.secret_key
-    ENVIRONMENT                 = terraform.workspace
-    ALGORITHM                   = "HS256"
-    PORT                        = "8000"
+    GOOGLE_CLIENT_ID      = var.google_client_id
+    GOOGLE_CLIENT_SECRET  = var.google_client_secret
+    MONGODB_URL           = var.mongodb_url
+    DATABASE_NAME         = var.database_name
+    OPENSUBTITLES_API_KEY = var.opensubtitles_api_key
+    SECRET_KEY            = var.secret_key
+    ENVIRONMENT           = terraform.workspace
+    ALGORITHM             = "HS256"
+    PORT                  = "8000"
   })
 }
